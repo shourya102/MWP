@@ -26,7 +26,6 @@
 
 @keyframes clicked-start {
     0% {
-
         border-radius: initial;
     }
     100% {
@@ -40,4 +39,18 @@
 
 .fix-height {
     margin-top: auto !important;
+}
+
+.animated-expand {
+    animation: expand ease-in 150ms;
+    animation-fill-mode: forwards;
+}
+
+@keyframes expand {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 10rem;
+    }
 }

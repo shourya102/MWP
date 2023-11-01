@@ -2,8 +2,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import './Room.css';
 import {useSocket} from "../../socket/Socket";
 import RoomService from "../../services/RoomService";
-import YouTube from "react-youtube";
 import {
+    AiFillAudio,
     AiFillCaretRight,
     AiFillDownCircle,
     AiFillExclamationCircle,
@@ -16,10 +16,12 @@ import TextMessage from "../../components/TextMessage/TextMessage";
 import {FaUsers} from "react-icons/fa";
 import {HiStatusOnline} from "react-icons/hi";
 import {BsThreeDots} from "react-icons/bs";
+import {FcEndCall} from "react-icons/fc";
+import ReactPlayer from "react-player";
 
 const Room = () => {
 
-    const screen = useRef();
+    const player = useRef(null);
     const [localStream, setLocalStream] = useState(new MediaStream());
     const socket = useSocket();
     const [remoteSocketId, setRemoteSocketId] = useState(null);
@@ -29,13 +31,46 @@ const Room = () => {
     const [userJoined, setUserJoined] = useState(false);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
-    const opts = {
-        // width: '1150',
-        // height: '600',
-    }
     const [tab, setTab] = useState(1);
     const [hidden1, setHidden1] = useState(false);
     const [users, setUsers] = useState([]);
+    const [showControls, setShowControls] = useState(false);
+    const [linkSet, setLinkSet] = useState(false);
+    const [videoLink, setVideoLink] = useState('');
+
+    const handlePlayAccept = () => {
+        console.log(player);
+        try {
+            player.current.player.player.player.playVideo();
+        } catch (e) {
+            player.current.player.player.player.play();
+        }
+    };
+
+    const handlePauseAccept = () => {
+        console.log("pausing")
+        try {
+            player.current.player.player.player.pauseVideo();
+        } catch (e) {
+            player.current.player.player.player.pause();
+        }
+    };
+
+    const handleVideoPlayed = useCallback(() => {
+        socket.emit("play");
+    }, [socket]);
+
+    const handleVideoPaused = useCallback(() => {
+        socket.emit("pause");
+    }, [socket])
+
+    const handleLinkChangeAccept = (link) => {
+        setVideoLink(link);
+    }
+
+    const handleLinkChanged = useCallback((e) => {
+        socket.emit("linkChanged", e.target.value)
+    }, [socket]);
 
     const handleRoomCountChange = useCallback(({user, joined}) => {
         console.log(user, joined);
@@ -49,7 +84,7 @@ const Room = () => {
 
     const handleAllUsersReceived = useCallback((allUsers) => {
         setUsers([...allUsers]);
-    }, [])
+    }, []);
 
     const handleMessageReceived = useCallback(({name, id, message, date}) => {
         const newMessage = {
@@ -87,7 +122,7 @@ const Room = () => {
     }, [remoteSocketId, socket]);
 
     const handleUserJoin = useCallback(async (data) => {
-        const {displayName, sessionId, roomId} = JSON.parse(data);
+        const {sessionId} = JSON.parse(data);
         setRemoteSocketId(sessionId);
         setUserJoined(true);
     }, []);
@@ -98,7 +133,7 @@ const Room = () => {
         });
     }, [localStream]);
 
-    const handleCallAccepted = useCallback(async ({from, ans}) => {
+    const handleCallAccepted = useCallback(async ({ans}) => {
         await RoomService.setRemoteDescription(ans);
         setConnectionStatus('CONNECTED_INITIATED');
         sendStreams();
@@ -119,10 +154,11 @@ const Room = () => {
     const handleNegotiationFinal = useCallback(async ({from, ans}) => {
         await RoomService.setRemoteDescription(ans);
         setConnectionStatus('CONNECTION_ESTABLISHED');
+        setShowControls(true);
         socket.emit("notifyPeer", {to: from});
     }, [socket]);
 
-    const handleNegotiationCompleted = useCallback(async ({message}) => {
+    const handleNegotiationCompleted = useCallback(async () => {
         try {
             sendStreams();
             setConnectionStatus('CONNECTION_ESTABLISHED');
@@ -163,6 +199,9 @@ const Room = () => {
         socket.on("messageReceived", handleMessageReceived);
         socket.on("roomCountChange", handleRoomCountChange);
         socket.on("allUsers", handleAllUsersReceived);
+        socket.on("linkChangeAccept", handleLinkChangeAccept);
+        socket.on("play", handlePlayAccept);
+        socket.on("pause", handlePauseAccept);
         return () => {
             socket.off("userJoined", handleUserJoin);
             socket.off("incomingCall", handleIncomingCall);
@@ -173,6 +212,9 @@ const Room = () => {
             socket.off("messageReceived", handleMessageReceived);
             socket.off("roomCountChange", handleRoomCountChange);
             socket.off("allUsers", handleAllUsersReceived);
+            socket.off("linkChangeAccept", handleLinkChangeAccept);
+            socket.off("play", handlePlayAccept);
+            socket.off("pause", handlePauseAccept);
         }
     }, [handleAllUsersReceived, handleCallAccepted, handleIncomingCall,
         handleMessageReceived, handleNegotiationCompleted, handleNegotiationFinal, handleNegotiationIncoming, handleRoomCountChange, handleUserJoin, socket]);
@@ -184,26 +226,51 @@ const Room = () => {
     return (<div
         className="Room bg-img-1 bg-cover flex flex-col space-x-2 md:flex-row min-h-screen max-h-screen min-w-screen max-w-screen p-2">
         <div className="flex flex-col space-y-2">
-            <div>
-                <YouTube videoId={'ntpILcpsILU'}
-                         ref={screen}
-                         opts={opts}
-                         iframeClassName="bg-white bg-opacity-50 backdrop-blur-lg w-full h-full rounded-3xl"
-                         className="lg:w-[70rem] lg:h-[35rem] rounded-3xl"/>
+            <div className="lg:w-[70rem] lg:h-[35rem] rounded-3xl overflow-hidden">
+                <ReactPlayer url={videoLink}
+                             ref={player}
+                             className="bg-white bg-opacity-50 backdrop-blur-lg w-full h-full rounded-3xl"
+                             onPlay={handleVideoPlayed}
+                             onPause={handleVideoPaused}
+                             width='100%'
+                             height='100%'/>
             </div>
             <div className="flex flex-col justify-between bg-white glass shadow-lg
             bg-opacity-50 backdrop-blur-lg rounded-3xl flex-grow">
                 <div className="p-2 mx-2 border-down-2 flex-grow flex justify-center items-center">
                     <IconContext.Provider value={{size: 30}}>
                         <div>
-                            <button disabled={!userJoined}
-                                    onClick={handleCallUser}
-                                    className={`${userJoined ? 'animated-border hover:bg-blue-600' : 'opacity-50'} bg-blue-700 flex items-center rounded-full p-2`}>
-                                <AiFillCaretRight/> Start Session
-                            </button>
+                            {!showControls &&
+                                <button disabled={!userJoined}
+                                        onClick={() => {
+                                            handleCallUser();
+                                            setShowControls(true);
+                                        }
+                                        }
+                                        className={`${userJoined ? 'animated-border hover:bg-blue-600' : 'opacity-50'} bg-blue-700 flex items-center rounded-full p-2`}>
+                                    <AiFillCaretRight/> Start Session
+                                </button>}
+                            {showControls &&
+                                <div
+                                    className="flex justify-evenly p-3 space-x-2 bg-blue-700 rounded-3xl text-gray-200">
+                                    <button onClick={() => setLinkSet(prevState => !prevState)}
+                                            className={`hover:text-gray-400 rounded-full p-2 ${linkSet ? 'transition-transform rotate-90 delay-150' : ''}`}>
+                                        <BsThreeDots/></button>
+                                    <input
+                                        className={`${linkSet ? 'inline' : 'hidden'} p-2 rounded-3xl text-gray-900 animated-expand`}
+                                        value={videoLink}
+                                        onChange={(e) => {
+                                            handleLinkChanged(e)
+                                            setVideoLink(e.target.value)
+                                        }}/>
+                                    <button className="hover:text-gray-400 rounded-full p-2"><AiFillVideoCamera/>
+                                    </button>
+                                    <button className="hover:text-gray-400 rounded-full p-2"><AiFillAudio/></button>
+                                    <button className="hover:text-gray-400 rounded-full p-2"><FcEndCall/></button>
+                                </div>
+                            }
                         </div>
                     </IconContext.Provider>
-
                 </div>
                 <div className="p-2 flex justify-start">
                     12:55 | 12 November 2013 | Room Id: 1 | Host: True
@@ -230,7 +297,7 @@ const Room = () => {
                 </button>
             </div>
             <div>
-                {tab === 1 && <div className="flex flex-col ">
+                <div className={`${tab === 1 ? 'flex' : 'hidden'} flex-col`}>
                     <div className="p-2 space-y-2">
                         <div
                             className="glass bg-white h-[15rem] w-full flex bg-opacity-50 glass1 shadow-xl rounded-3xl">
@@ -254,7 +321,7 @@ const Room = () => {
                             Currently supports only 2 connections &#128542;
                         </span>
                     </div>
-                </div>}
+                </div>
                 {tab === 2 &&
                     <div className="p-2 flex flex-col max-h-[42.5rem] min-h-[42.5rem] overflow-y-hidden">
                         <div
