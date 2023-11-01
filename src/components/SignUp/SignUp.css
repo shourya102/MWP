@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.look2 {
+    box-shadow: -0.4rem -0.4rem 0 0 var(--primary-1);
+}

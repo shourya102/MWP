@@ -1,13 +1,52 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --bg-1: #000;
+        --bg-2: rgba(0, 0, 30, 0.5);
+        --text-1: #e9e9e9;
+        --text-2: #777;
+        --text-3: #aaa;
+        --text-4: #cbcbcb;
+        --gradient-1: ;
+        --gradient-2: ;
+        --border-1: #fff;
+        --border-2: #222;
+        --border-3: #aaa;
+        --primary-1: rgb(195, 65, 12);
+        --secondary-1: rgb(29, 78, 216);
+    }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    z-index: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    border-radius: 999px;
+    background-color: rgba(125, 125, 125);
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background-color: rgb(160, 160, 160);
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: rgb(125, 125, 125);
 }

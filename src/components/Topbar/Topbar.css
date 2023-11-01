@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 20px solid var(--primary-1);
+    border-bottom: 12px solid transparent;
+    border-top: 12px solid transparent;
+}
+
+.open-animation {
+    transform: rotate(90deg);
+}
+

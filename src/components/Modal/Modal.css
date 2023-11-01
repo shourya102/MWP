@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.Modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+}
+
+.modal-content {
+    border: 1px solid rgba(125, 125, 125, 0.2);
+}

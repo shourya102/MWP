@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.glass {
+    border: 1px solid rgba(120, 120, 120, 0.2);
+}
+
+.animated-border {
+    animation-name: dipping-border;
+    animation-iteration-count: infinite;
+    animation-duration: 1.5s;
+}
+
+@keyframes dipping-border {
+    0% {
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 25px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+}
+
+@keyframes clicked-start {
+    0% {
+
+        border-radius: initial;
+    }
+    100% {
+        border-radius: 999px;
+    }
+}
+
+.border-down-2 {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.fix-height {
+    margin-top: auto !important;
+}
